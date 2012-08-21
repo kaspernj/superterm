@@ -17,8 +17,8 @@ Jeweler::Tasks.new do |gem|
   gem.name = "superterm"
   gem.homepage = "http://github.com/kaspernj/superterm"
   gem.license = "MIT"
-  gem.summary = %Q{TODO: one-line summary of your gem}
-  gem.description = %Q{TODO: longer description of your gem}
+  gem.summary = %Q{Got tired of various terminals that didnt work as I wanted them to.}
+  gem.description = %Q{A terminal that focuses on remote control for various events.}
   gem.email = "k@spernj.org"
   gem.authors = ["Kasper Johansen"]
   # dependencies defined in Gemfile
