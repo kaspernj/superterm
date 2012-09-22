@@ -10,14 +10,42 @@ class Superterm::Gui::Win_main
   
   def show
     if !@gui or @gui.destroyed? or @gui["window"].destroyed?
-      @gui = Gtk::Builder.new.add("#{File.dirname(__FILE__)}/../glade/win_main.glade")
+      puts "Spawning Builder."
+      @gui = Gtk3assist::Builder.new.add_from_file("#{File.dirname(__FILE__)}/../glade/win_main.glade")
+      
+      puts "Connecting signals."
       @gui.connect_signals{|h| method(h)}
       
+      puts "Adding terminal."
       self.add_terminal
+      
+      puts "Showing window."
+      @gui["window"].keep_above = true
       @gui["window"].show_all
     else
       @gui["window"].show_all
     end
+    
+    
+    #Make window 80% width of the monitor and 65% height. Then place it in the middle at the top.
+    screen = @gui["window"].screen
+    monitor_no = screen.primary_monitor
+    monitor_geometry = screen.monitor_geometry(monitor_no)
+    
+    width, height = monitor_geometry.width, monitor_geometry.height
+    
+    window_width = (width.to_f * 0.8).to_i
+    window_height = (height.to_f * 0.65).to_i
+    
+    @gui["window"].resize(window_width, window_height)
+    
+    pos_left = ((width.to_f - window_width.to_f) / 2).to_i
+    pos_top = 0
+    @gui["window"].move(pos_left, pos_top)
+  end
+  
+  def on_window_focus_out_event
+    @gui["window"].hide
   end
   
   def on_window_delete_event
@@ -60,7 +88,7 @@ class Superterm::Gui::Win_main
       @term.signal_connect("child-exited", &self.method(:on_child_exit))
       @term.signal_connect("window-title-changed", &self.method(:on_windowTitle_changed))
       
-      @bash_pid = @term.fork_command("bash")
+      @bash_pid = @term.fork_command_full(Vte::PtyFlags[:default], ENV["HOME"], ["/bin/bash"], [], GLib::SpawnFlags[:do_not_reap_child], nil, nil)
     end
     
     def on_child_exit(*args)

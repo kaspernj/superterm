@@ -3,8 +3,8 @@ source "http://rubygems.org"
 # Example:
 #   gem "activesupport", ">= 2.3.5"
 
-gem "gtk2"
-gem "vte"
+gem "gir_ffi-gtk"
+gem "gtk3assist"
 gem "gettext"
 gem "sqlite3"
 gem "knjrbfw"

@@ -1,12 +1,15 @@
 require "rubygems"
-require "gtk2"
-require "vte"
 require "gettext"
 require "sqlite3"
-require "knjrbfw"
-
 require "fileutils"
 
+begin
+  require "#{File.dirname(__FILE__)}/../../knjrbfw/lib/knjrbfw.rb"
+rescue LoadError
+  require "knjrbfw"
+end
+
+puts "Making config-path in home-dir."
 path = "#{Knj::Os.homedir}/.superterm"
 Dir.mkdir(path) if !File.exists?(path)
 
@@ -44,6 +47,16 @@ class Superterm
     end
     
     if do_start
+      puts "Loading Gtk3."
+      require "gir_ffi-gtk3"
+      Knj.gem_require(:Gtk3assist)
+      
+      GirFFI.setup :Vte
+      Gtk.init
+      
+      puts "Enable threadding."
+      Gtk3assist::Threadding.enable_threadding
+      
       win_main = Superterm::Gui::Win_main.new
       Superterm::Unix_socket.new(:win_main => win_main)
       
