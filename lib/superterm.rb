@@ -16,6 +16,7 @@ Dir.mkdir(path) if !File.exists?(path)
 class Superterm
   CONFIG = {
     :path => "#{Knj::Os.homedir}",
+    :conf_path => "#{Knj::Os.homedir}/.superterm",
     :sock_path => "#{Knj::Os.homedir}/.superterm/sock",
     :run_path => "#{Knj::Os.homedir}/.superterm/run"
   }
@@ -47,17 +48,28 @@ class Superterm
     end
     
     if do_start
-      puts "Loading Gtk3."
+      puts "Loading Gtk3 and Vte."
       require "gir_ffi-gtk3"
       Knj.gem_require(:Gtk3assist)
-      
       GirFFI.setup :Vte
       Gtk.init
       
       puts "Enable threadding."
       Gtk3assist::Threadding.enable_threadding
       
-      win_main = Superterm::Gui::Win_main.new
+      puts "Opening database."
+      db = Knj::Db.new(
+        :type => "sqlite3",
+        :path => "#{CONFIG[:conf_path]}/superterm.sqlite3",
+        :index_append_table_name => true,
+        :return_keys => "symbols"
+      )
+      Knj::Db::Revision.new.init_db("db" => db, "schema" => Superterm::Dbschema::SCHEMA)
+      
+      puts "Loading options."
+      Knj::Opts.init("knjdb" => db, "table" => "Option")
+      
+      win_main = Superterm::Gui::Win_main.new(:db => db)
       Superterm::Unix_socket.new(:win_main => win_main)
       
       Gtk.main
@@ -67,6 +79,10 @@ class Superterm
         if match = val.match(/^--cmd=(.+)$/)
           cmd = match[1]
           break
+        elsif match = val.match(/^--help$/)
+          puts "Possible commands:"
+          puts "  --help                    - Shows this message."
+          puts "  --cmd=open_show_main      - Shows the terminal and forces focus. Useful for shortcut bindings."
         else
           $stderr.puts "Unknown argument: '#{val}'."
           exit
@@ -85,6 +101,7 @@ class Superterm
   end
 end
 
+#Fake support for Gettext. Makes it easier to implement later.
 def _(str)
   return str.to_s
 end

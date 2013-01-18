@@ -22,7 +22,7 @@ class Superterm::Unix_socket
             line = line.strip
             
             if line.strip == "open_win_main"
-              @args[:win_main].show
+              @args[:win_main].show_hide_trigger
             else
               print "Unknown line: #{line}\n"
             end
